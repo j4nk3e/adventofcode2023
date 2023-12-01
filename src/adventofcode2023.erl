@@ -8,7 +8,9 @@
 %% escript Entry point
 main([Day, Part]) ->
     Lines = read_stdin(),
-    io:format("# Day ~s Part ~s~n~p~n", [Day, Part, Lines]),
+    [First | _] = Lines,
+    Last = lists:last(Lines),
+    io:format("# Day ~s Part ~s~n~p~n...~n~p~n", [Day, Part, First, Last]),
     D = list_to_atom("a" ++ Day),
     P = list_to_atom(Part),
     Solution = D:P(Lines),
