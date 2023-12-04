@@ -9,29 +9,19 @@ a(In) ->
 parse(L) ->
     [_Card, Numbers] = re:split(L, "\\s*\\:\\s*", [{return, list}, trim]),
     [Left, Right] = re:split(Numbers, "\\s*\\|\\s*", [{return, list}, trim]),
-    S = fun(X) -> sets:from_list(to_int_list(X)) end,
-    sets:size(sets:intersection(S(Left), S(Right))).
+    Set = fun(S) -> sets:from_list(re:split(S, "\\s+", [{return, list}, trim])) end,
+    sets:size(sets:intersection(Set(Left), Set(Right))).
 
 points(0) -> 0;
 points(C) -> round(math:pow(2, C - 1)).
 
-to_int_list(S) ->
-    List = re:split(S, "\\s+", [{return, list}, trim]),
-    lists:map(fun(N) -> list_to_integer(N) end, List).
-
 b(In) ->
     G = lists:map(fun parse/1, In),
-    collect(0, lists:zip(lists:seq(1, length(G)), G), #{}).
+    collect(0, lists:zip(lists:duplicate(length(G), 1), G)).
 
-collect(Acc, [], _M) ->
-    Acc;
-collect(Acc, [{Id, 0} | T], M) ->
-    C = maps:get(Id, M, 1),
-    collect(Acc + C, T, M);
-collect(Acc, [{Id, W} | T], M) ->
-    C = maps:get(Id, M, 1),
-    Mx = add_cards(M, lists:seq(Id + 1, Id + W), C),
-    collect(Acc + C, T, Mx).
+collect(Acc, []) -> Acc;
+collect(Acc, [{C, 0} | T]) -> collect(Acc + C, T);
+collect(Acc, [{C, W} | T]) -> collect(Acc + C, push(T, W, C)).
 
-add_cards(M, [], _C) -> M;
-add_cards(M, [H | T], C) -> add_cards(maps:update_with(H, fun(V) -> V + C end, C + 1, M), T, C).
+push(L, 0, _C) -> L;
+push([{H, G} | T], N, C) -> [{H + C, G} | push(T, N - 1, C)].
