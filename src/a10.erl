@@ -55,7 +55,9 @@ b(In) ->
     Start = maps:get(start, M),
     Loop = maps:put(Start, not sets:is_empty(W), maps:from_list(sets:to_list(L))),
     Line = lists:duplicate(length(hd(In)), false),
-    sweep({Line, 0}, Loop, length(In) - 1).
+    Inside = sweep({Line, []}, Loop, length(In) - 1),
+    visualize(Loop, sets:from_list(Inside), In),
+    length(Inside).
 
 sweep({_Line, C}, _Loop, -1) -> C;
 sweep({Line, C}, Loop, Y) -> sweep(sweep_line([], Line, Loop, 0, Y, C), Loop, Y - 1).
@@ -64,10 +66,42 @@ sweep_line(Acc, [], _Loop, _X, _Y, C) ->
     {lists:reverse(Acc), C};
 sweep_line(Acc, [Inside | T], Loop, X, Y, C) ->
     Edge = maps:get({X, Y}, Loop, nil),
-    Count =
+    Res =
         case {Edge, Inside} of
-            {nil, true} -> C + 1;
+            {nil, true} -> [{X, Y} | C];
             _ -> C
         end,
     Ins = Inside xor (Edge == true),
-    sweep_line([Ins | Acc], T, Loop, X + 1, Y, Count).
+    sweep_line([Ins | Acc], T, Loop, X + 1, Y, Res).
+
+visualize(Loop, Inside, In) ->
+    io:setopts([{encoding, unicode}]),
+    [visualize_line(Loop, Inside, Y, L) || {Y, L} <- lists:enumerate(0, In)].
+
+visualize_line(Loop, Inside, Y, L) ->
+    pretty([
+        replace(C, {X, Y}, Loop, Inside)
+     || {X, C} <- lists:enumerate(0, L)
+    ]).
+
+pretty(L) -> io:format("~n~ts", [L]).
+
+replace(C, Pos, Loop, Inside) ->
+    E = sets:is_element(Pos, Loop),
+    I = sets:is_element(Pos, Inside),
+    Q =
+        case C of
+                $F -> $╔;
+                $| -> $║;
+                $L -> $╚;
+                $7 -> $╗;
+                $- -> $═;
+                $J -> $╝;
+                $S -> color:on_red($╬);
+                $. -> $\s
+        end,
+    if
+        E -> color:green(Q);
+        I -> color:on_magenta(Q);
+        true -> color:rgb([1, 1, 1], Q)
+    end.
