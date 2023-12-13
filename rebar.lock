@@ -1,1 +1,4 @@
-[].
+[{<<"memoizer">>,
+  {git,"https://github.com/ZoltanLajosKis/erl-memoizer",
+       {ref,"14ecab72e90084fdd41b5209caa95808fa35434f"}},
+  0}].
