@@ -36,10 +36,4 @@ b(In) ->
         search(fun(P) -> lists:nth(3, P) == $Z end, 0, K, LR, Map, LR)
      || K <- maps:keys(Map), lists:nth(3, K) == $A
     ],
-    lists:foldl(fun lcm/2, 1, All).
-
-lcm(A, B) when A > B -> lcm(B, A);
-lcm(A, B) -> (B div gcd(A, B)) * A.
-
-gcd(A, 0) -> A;
-gcd(A, B) -> gcd(B, A rem B).
+    lists:foldl(fun lcm:lcm/2, 1, All).
